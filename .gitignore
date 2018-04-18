@@ -1,1 +1,3 @@
 *.ipynb
+*.idea
+src/__pycache__/
