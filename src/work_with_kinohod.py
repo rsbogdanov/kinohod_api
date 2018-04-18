@@ -2,6 +2,22 @@ import pandas as pd
 import json
 import utils
 from tqdm import tqdm
+import requests
+
+
+MOVIES_SOON = 'https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/movies/soon.json'
+
+
+
+def get_film_sson(url=MOVIES_SOON):
+    headers = {"Accept-Encoding": "json"}
+    movies_soon = requests.get(url, headers=headers)
+    if movies_soon.status_code == 200:
+        print(movies_soon.status_code)
+        movies_soon_json = movies_soon.json()
+        return pd.DataFrame(movies_soon_json)
+    else: print('error')
+
 
 
 
@@ -13,11 +29,14 @@ def create_table(param_table, name_table, con):
     cur.execute(query)
     con.commit()
 
+
 def create_df_with_data(json_file):
     with open(json_file, 'r', encoding='utf-8') as j_file:
         a = json.load(j_file)
     df = pd.DataFrame(a)
     return df
+
+
 
 def full_films(df,con):
     cur = con.cursor()
@@ -517,6 +536,56 @@ def full_languages(df, conn):
 
 
 
+def update_film(df, con):
+    cur = con.cursor()
+    for i, k in df.iterrows():
+        params = {'movieid': k.id,
+                  'title': k.title,
+                  'originalTitle': k.originalTitle,
+                  'duration': k.duration,
+                  'productionYear': k.productionYear,
+                  'premiereDateRussia': k.premiereDateRussia,
+                  'premiereDateWorld': k.premiereDateWorld,
+                  'budget': k.budget,
+                  'annotationShort': k.annotationShort,
+                  'annotationFull': k.annotationFull,
+                  'ageRestriction': k.ageRestriction,
+                  'grossRevenueRus': k.grossRevenueRus,
+                  'grossRevenueWorld': k.grossRevenueWorld,
+                  'rating': k.rating,
+                  'imdbId': k.imdbId,
+                  'externalTrailer': k.externalTrailer,
+                  'countScreens': k.countScreens,
+                  'countVotes': k.countVotes,
+                  'countComments': k.countComments,
+                  'weight': k.weight,
+                  'isDolbyAtmos': k.isDolbyAtmos,
+                  'isImax': k.isImax,
+                  'is4dx': k.is4dx,
+                  'isPresale': k.isPresale,
+                  'distributorId': k.distributorId}
+        query = """
+                    INSERT INTO films (movieid,title,originalTitle,duration,
+                            productionYear,premiereDateRussia,premiereDateWorld,
+                            budget,annotationShort,annotationFull,ageRestriction,
+                            grossRevenueRus,grossRevenueWorld,rating,imdbId,
+                            externalTrailer,countScreens,countVotes,
+                            countComments,weight,isDolbyAtmos,isImax,
+                            is4dx,isPresale,distributorId)
+                    SELECT  :movieid,:title,:originalTitle,:duration,
+                            :productionYear,:premiereDateRussia,:premiereDateWorld,
+                            :budget,:annotationShort,:annotationFull,:ageRestriction,
+                            :grossRevenueRus,:grossRevenueWorld,:rating,:imdbId,
+                            :externalTrailer,:countScreens,:countVotes,
+                            :countComments,:weight,:isDolbyAtmos,
+                            :isImax,:is4dx,:isPresale,:distributorId
+                            WHERE NOT EXISTS(SELECT 1 FROM films WHERE movieid = :movieid)"""
+        cur.execute(query, params)
+    conn.commit()
+
+
+
+
 if __name__ == '__main__':
     conn = utils.connection(utils.DB_ROOT)
     create_table(utils.filmps_params, 'films', conn)
@@ -526,7 +595,7 @@ if __name__ == '__main__':
     create_table(utils.seances_params, 'seances', conn)
     df_lang = create_df_with_data('../data/languages.json')
     #print(df_lang.head(20))
-    full_languages(df_lang,conn)
+    #full_languages(df_lang,conn)
     #df_film = create_df_with_data('../data/all_films.json')
     #add_producers(df_film,conn
     #add_companies(df_film, conn)
@@ -553,3 +622,6 @@ if __name__ == '__main__':
     #full_cities(df_cities, conn)
     #full_halls(df_halls, conn)
     #full_seances(df_seances, conn)
+    a = get_film_sson()
+    print(a[['id', 'title']].head())
+    update_film(a, conn)
