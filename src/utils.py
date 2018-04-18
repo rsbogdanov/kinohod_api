@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_ROOT = 'D:/kinohod_db/kinohod.db'
+DB_ROOT = '../../kinohod.db'
 
 def connection(db_root):
     with sqlite3.connect(db_root) as con:

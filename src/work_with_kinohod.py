@@ -5,19 +5,36 @@ from tqdm import tqdm
 import requests
 
 
-MOVIES_SOON = 'https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/movies/soon.json'
+URL = 'https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/'
+MOVIES_SOON = 'movies/soon.json'
+SEANCES = 'seances.json'
+CITIES = 'cities.json'
+SEANCES_SOON = '/seances/soon.json'
 
 
-
-def get_film_sson(url=MOVIES_SOON):
+def get_report(url):
+    link = URL + url
     headers = {"Accept-Encoding": "json"}
-    movies_soon = requests.get(url, headers=headers)
+    movies_soon = requests.get(link, headers=headers)
     if movies_soon.status_code == 200:
         print(movies_soon.status_code)
         movies_soon_json = movies_soon.json()
         return pd.DataFrame(movies_soon_json)
     else: print('error')
 
+def get_report_for_all_cities(url, con):
+    for city in get_all_cities(con):
+        link = '{URL}/city/{id}/{l_url}'.format(URL=URL, id=city, l_url=url)
+        headers = {"Accept-Encoding": "json"}
+        seances_soon = requests.get(link, headers=headers)
+        if seances_soon.status_code == 200:
+            print(seances_soon.status_code)
+            seances_soon_json = seances_soon.json()
+            a = pd.DataFrame(seances_soon_json)
+            full_seances(a, con)
+            print("For city_id: {} were added {} seances".format(city, len(a)))
+        else:
+            print('error')
 
 
 
@@ -129,9 +146,10 @@ def full_cities(df,con):
                   "utcOffset": k.utcOffset,
                   "alias": k.alias}
         query = """
-        INSERT INTO cities
-        (cityid,title,location,utcOffset,alias)
-        VALUES (:cityid,:title,:location,:utcOffset,:alias)"""
+        INSERT INTO cities (cityid,title,location,utcOffset,alias)
+        SELECT :cityid,:title,:location,:utcOffset,:alias
+        WHERE NOT EXISTS
+            (SELECT 1 FROM cities WHERE cityid = :cityid)"""
         cur.execute(query, params)
     conn.commit()
 
@@ -160,11 +178,12 @@ def full_seances(df,con):
                 time,startTime,hallId,isSaleAllowed,
                 minPrice,maxPrice,maxSeatsInOrder,subtitleId,
                 languageId,groupName,groupOrder)
-        VALUES
-                (:seanc_id,:movieId,:cinemaId,:date,
+        SELECT
+                :seanc_id,:movieId,:cinemaId,:date,
                 :time,:startTime,:hallId,:isSaleAllowed,
                 :minPrice,:maxPrice,:maxSeatsInOrder,:subtitleId,
-                :languageId,:groupName,:groupOrder)"""
+                :languageId,:groupName,:groupOrder
+        WHERE NOT EXISTS(SELECT 1 FROM seances WHERE seanc_id = :seanc_id)"""
         cur.execute(query, params)
     conn.commit()
 
@@ -584,6 +603,12 @@ def update_film(df, con):
     conn.commit()
 
 
+def get_all_cities(con):
+    query = """
+    SELECT cityid from cities"""
+    a = pd.read_sql(query, con)
+    return a.cityid.values
+
 
 
 if __name__ == '__main__':
@@ -622,6 +647,9 @@ if __name__ == '__main__':
     #full_cities(df_cities, conn)
     #full_halls(df_halls, conn)
     #full_seances(df_seances, conn)
-    a = get_film_sson()
-    print(a[['id', 'title']].head())
-    update_film(a, conn)
+    #b = get_report(CITIES)
+    #print(b[['id']].head())
+    #full_cities(b, conn)
+    #update_film(a, conn)
+    get_report_for_all_cities(SEANCES_SOON, conn)
+
