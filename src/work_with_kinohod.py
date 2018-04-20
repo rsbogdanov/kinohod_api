@@ -647,9 +647,10 @@ if __name__ == '__main__':
     #full_cities(df_cities, conn)
     #full_halls(df_halls, conn)
     #full_seances(df_seances, conn)
-    #b = get_report(CITIES)
+    a = get_report(MOVIES_SOON)
+    b = get_report(CITIES)
     #print(b[['id']].head())
-    #full_cities(b, conn)
-    #update_film(a, conn)
+    full_cities(b, conn)
+    update_film(a, conn)
     get_report_for_all_cities(SEANCES_SOON, conn)
 
