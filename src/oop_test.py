@@ -4,6 +4,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, Numeric, Da
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -106,8 +107,8 @@ class SeanceInfo(Base):
     seance_id = Column(Integer, nullable=False)
     movieId = Column(Integer, ForeignKey('movies.id'))
     cinemaId = Column(Integer, ForeignKey('cinemas.id'))
-    date = Column(Date)
-    time = Column(String)
+    date = Column(DateTime)
+    time = Column(DateTime)
     startTime = Column(DateTime)
     hallId = Column(Integer, ForeignKey('halls.id'))
     formats = Column(String, ForeignKey('seance_format.seance_id'))
@@ -252,7 +253,7 @@ class Countryies(Base):
 class Goodies(Base):
     __tablename__ = 'goodies'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    good_id = Column(Integer, nullable=False)
+    good_title = Column(String, nullable=False)
     name = Column(String)
     cinema = relationship("Cinemas",
                           secondary="goodies_cinema",
@@ -393,7 +394,7 @@ class CinemaGoodies(Base):
     __tablename__ = 'goodies_cinema'
     id = Column(Integer, primary_key=True, autoincrement=True)
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
-    good_id = Column(Integer, ForeignKey('goodies.good_id'))
+    good_title = Column(String, ForeignKey('goodies.good_title'))
 
 
 class PhoneInfo(Base):
@@ -433,16 +434,18 @@ class MoviesImages(Base):
 
 class Format(Base):
     __tablename__ = 'formats'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    format_name = Column(String)
     description = Column(String)
+
 
 
 class SeanceFormat(Base):
     __tablename__ = 'seance_format'
     id = Column(Integer, primary_key=True)
-    seance_id = Column(Integer, ForeignKey('seances.id'))
-    format_id = Column(Integer, ForeignKey('formats.id'))
-
+    seance_id = Column(Integer)
+    format_name = Column(String)
+    seance = relationship("SeanceInfo", backref='seances')
 
 
 engine = create_engine('sqlite:///../data/oop_test2.db', encoding='utf-8')

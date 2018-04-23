@@ -15,6 +15,9 @@ class ApiKinohod():
         self.genres = 'genres.json'
         self.languages = 'languages.json'
         self.accept = {"Accept-Encoding": "json"}
+        self.cinemas = 'cinemas.json'
+        self.movies = 'movies.json'
+        self.seances = 'seances.json'
 
     def get_json(self, method):
         link = self.api_key + method
@@ -29,5 +32,5 @@ class ApiKinohod():
 
 if __name__ == '__main__':
     a = ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
-    df = a.get_json(a.languages)
-    print(df.head(15))
+    df = a.get_json(a.seances)
+    print(df.head())
