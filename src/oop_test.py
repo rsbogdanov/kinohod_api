@@ -100,7 +100,6 @@ class MovieInfo(Base):
     distributorId = Column(Integer, ForeignKey('distributors.distributor_id'))
 
 
-
 class SeanceInfo(Base):
     __tablename__ = 'seances'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -199,55 +198,38 @@ class SourceEntityInfo(Base):
 #direct request to API                                                   #
 ##########################################################################
 
-
-class Actors(Base):
-    __tablename__ = 'actors'
+class CommonDicts:
     id = Column(Integer, primary_key=True, autoincrement=True)
-    actor_id = Column(Integer, nullable=False)
-    actor_name = Column(String)
-    movies = relationship("MovieInfo",
-                          secondary="movies_actors",
-                          backref="actor")
+    field_id = Column(Integer, nullable=False)
+    name = Column(String)
 
 
-class Producers(Base):
-    __tablename__ = 'producers'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    producer_id = Column(Integer, nullable=False)
-    producer_name = Column(String)
-    movies = relationship("MovieInfo",
-                          secondary="movies_producers",
-                          backref="producer")
-
-
-class Directors(Base):
-    __tablename__ = 'directors'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    director_id = Column(Integer, nullable=False)
-    director_name = Column(String)
-    movies = relationship("MovieInfo",
-                          secondary="movies_directors",
-                          backref="director")
-
-
-class Companies(Base):
+class MyCompanies(CommonDicts, Base):
     __tablename__ = 'companies'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    company_id = Column(Integer, nullable=False)
-    company_name = Column(String)
     movies = relationship("MovieInfo",
                           secondary="movies_companies",
                           backref="company")
 
 
-class Countryies(Base):
-    __tablename__ = 'countries'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    country_id = Column(Integer, nullable=False)
-    country = Column(String)
+class MyActors(CommonDicts, Base):
+    __tablename__ = 'actors'
     movies = relationship("MovieInfo",
-                          secondary="movies_countries",
-                          backref="country")
+                          secondary="movies_actors",
+                          backref="actor")
+
+
+class MyProducers(CommonDicts, Base):
+    __tablename__ = 'producers'
+    movies = relationship("MovieInfo",
+                          secondary="movies_producers",
+                          backref="producer")
+
+
+class MyDirectors(CommonDicts, Base):
+    __tablename__ = 'directors'
+    movies = relationship("MovieInfo",
+                          secondary="movies_directors",
+                          backref="director")
 
 
 class Goodies(Base):
@@ -352,42 +334,42 @@ class MoviesActors(Base):
     __tablename__ = 'movies_actors'
     id = Column(Integer, primary_key=True, autoincrement=True)
     movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    actor_id = Column(Integer, ForeignKey('actors.actor_id'))
+    field_id = Column(Integer, ForeignKey('actors.field_id'))
 
 
 class MoviesProducers(Base):
     __tablename__ = 'movies_producers'
     id = Column(Integer, primary_key=True, autoincrement=True)
     movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    producer_id = Column(Integer, ForeignKey('producers.producer_id'))
+    field_id = Column(Integer, ForeignKey('producers.field_id'))
 
 
 class MoviesDirectors(Base):
     __tablename__ = 'movies_directors'
     id = Column(Integer, primary_key=True, autoincrement=True)
     movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    director_id = Column(Integer, ForeignKey('directors.director_id'))
+    field_id = Column(Integer, ForeignKey('directors.field_id'))
 
 
 class MoviesCompanies(Base):
     __tablename__ = 'movies_companies'
     id = Column(Integer, primary_key=True, autoincrement=True)
     movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    companie_id = Column(Integer, ForeignKey('companies.company_id'))
+    field_id = Column(Integer, ForeignKey('companies.field_id'))
 
 
 class MoviesCountries(Base):
     __tablename__ = 'movies_countries'
     id = Column(Integer, primary_key=True, autoincrement=True)
     movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    country_id = Column(Integer, ForeignKey('countries.country_id'))
+    country = Column(String)
 
 
 class MoviesGenres(Base):
     __tablename__ = 'movies_genres'
     id = Column(Integer, primary_key=True, autoincrement=True)
     movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    genre_id = Column(Integer, ForeignKey('genres.genre_id'))
+    field_id = Column(Integer, ForeignKey('genres.genre_id'))
 
 
 class CinemaGoodies(Base):

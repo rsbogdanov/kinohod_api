@@ -2,10 +2,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src import oop_work_with_api
 from datetime import datetime
+from tqdm import tqdm
 
 from src.oop_test import Base, Distributors, CityInfo, Locations, NetworksInfo, Halls, \
                          SubwayInfo, Genres, LanguageInfo, Cinemas, Images, PhoneInfo, SubwaystationsCinemas, \
-                         Goodies, CinemaGoodies, SeanceInfo, Format, SeanceFormat
+                         Goodies, CinemaGoodies, SeanceInfo, Format, SeanceFormat, MovieInfo, MoviesActors, \
+                         MoviesCompanies, MoviesCountries, MoviesDirectors, MoviesGenres, MoviesImages, MoviesProducers, \
+                         MoviesTrailers, PhotosCinemas, CommonDicts, MyCompanies, MyActors,\
+                         MyProducers, MyDirectors
 
 engine = create_engine('sqlite:///../data/oop_test2.db', encoding='utf-8')
 # Bind the engine to the metadata of the Base class so that the
@@ -17,6 +21,19 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+
+_dict={"companies": MyCompanies,
+        "actors": MyActors,
+        "producers": MyProducers,
+        "directors": MyDirectors}
+
+_dict_mtm={"companies": MoviesCompanies,
+           "actors": MoviesActors,
+           "producers": MoviesProducers,
+           "directors": MoviesDirectors}
+
+_dict_image = {'poster': 'poster_movie_id',
+               'posterLandscape': 'poster_land_movie_id'}
 
 def full_destibutors(df):
     for k,v in df.iterrows():
@@ -130,8 +147,6 @@ def full_Goodies():
     for k in data:
         exist = session.query(Goodies).filter_by(good_title=k).first()
         if not exist:
-            print(k)
-            print(data.get(k))
             new_good = Goodies(good_title=k, name=data.get(k))
             session.add(new_good)
     session.commit()
@@ -157,7 +172,7 @@ def full_formats():
 
 
 def full_cinemas(df):
-    for k,v in df.iterrows():
+    for k,v in tqdm(df.iterrows()):
         exists = session.query(Cinemas).filter_by(cinema_id=v['id']).first()
         if not exists:
             new_cinema = Cinemas(cinema_id=v['id'],
@@ -204,7 +219,7 @@ def full_cinemas(df):
 
 
 def full_seances(df):
-    for k,v in df.iterrows():
+    for k,v in tqdm(df.iterrows()):
         exists = session.query(SeanceInfo).filter_by(seance_id=v['id']).first()
         if not exists:
             new_seance = SeanceInfo(seance_id=v['id'],
@@ -224,10 +239,87 @@ def full_seances(df):
                                     groupOrder=v['groupOrder'])
             session.add(new_seance)
             for item in v['formats']:
-                new_format_seanse = SeanceFormat(seance_id = v['id'],
-                                                 format_name = item)
+                new_format_seanse = SeanceFormat(seance_id=v['id'],
+                                                 format_name=item)
                 session.add(new_format_seanse)
+
     session.commit()
+
+
+def check_is_time(obj):
+    data  = '1700-01-01'
+    if obj:
+        data = obj
+    return data
+
+
+def full_movies(df):
+    for k,v in tqdm(df.iterrows()):
+        exists = session.query(MovieInfo).filter_by(movie_id=v['id']).first()
+        if not exists:
+            new_movie=MovieInfo(movie_id=v['id'],
+                                title=v['title'],
+                                duration=v['duration'],
+                                originalTitle=v['originalTitle'],
+                                productionYear=v['productionYear'],
+                                premiereDateRussia=datetime.strptime(check_is_time(v['premiereDateRussia']),'%Y-%m-%d'),
+                                premiereDateWorld=datetime.strptime(check_is_time(v['premiereDateWorld']),'%Y-%m-%d'),
+                                budget=v['budget'],
+                                annotationShort=v['annotationShort'],
+                                annotationFull=v['annotationFull'],
+                                ageRestriction=v['ageRestriction'],
+                                grossRevenueRus=v['grossRevenueRus'],
+                                grossRevenueWorld=v['grossRevenueWorld'],
+                                rating=v['rating'],
+                                imdbId=v['imdbId'],
+                                externalTrailer=v['externalTrailer'],
+                                countScreens=v['countScreens'],
+                                countVotes=v['countVotes'],
+                                countComments=v['countComments'],
+                                weight=v['weight'],
+                                isDolbyAtmos=v['isDolbyAtmos'],
+                                isImax=v['isImax'],
+                                is4dx=v['is4dx'],
+                                isPresale=v['isPresale'],
+                                distributorId=v['distributorId'])
+            session.add(new_movie)
+            for k in _dict.keys():
+                fill_common_dict_tables(k, v)
+            if v['poster'].get('name') and v['poster'].get('rgb'):
+                new_poster = Images(poster_movie_id=v['id'],
+                                    rgb=v['poster'].get('rgb'),
+                                    name=v['poster'].get('name'))
+                session.add(new_poster)
+            if v['posterLandscape'].get('name') and v['posterLandscape'].get('rgb'):
+                new_poster = Images(poster_land_movie_id=v['id'],
+                                    rgb=v['posterLandscape'].get('rgb'),
+                                    name=v['posterLandscape'].get('name'))
+                session.add(new_poster)
+            if v['countries']:
+                for item in v['countries']:
+                    new_country_movie = MoviesCountries(movie_id=v['id'],
+                                                        country=item)
+                    session.add(new_country_movie)
+    session.commit()
+
+
+
+
+
+
+def fill_common_dict_tables(field_name, df_string):
+    if df_string.get(field_name):
+        for item in df_string.get(field_name):
+            exists = session.query(_dict[field_name]).filter_by(field_id=item.get('id')).first()
+            if not exists:
+                new_company = _dict[field_name](field_id=item.get('id'),
+                                                name=item.get('name'))
+                session.add(new_company)
+            new_mtm = _dict_mtm[field_name](movie_id=df_string['id'],
+                                            field_id=item.get('id'))
+            session.add(new_mtm)
+
+
 
 
 if __name__ == '__main__':
@@ -242,4 +334,5 @@ if __name__ == '__main__':
     # full_cinemas(a.get_json(a.cinemas))
     # full_Goodies()
     # full_formats()
-    full_seances(a.get_json(a.seances))
+    full_movies(a.get_json(a.movies))
+    #full_seances(a.get_json(a.seances))

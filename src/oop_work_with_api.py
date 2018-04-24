@@ -32,5 +32,5 @@ class ApiKinohod():
 
 if __name__ == '__main__':
     a = ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
-    df = a.get_json(a.seances)
-    print(df.head())
+    df = a.get_json(a.movies)
+    print(df[['companies','title']].head(50))
