@@ -3,13 +3,17 @@ from sqlalchemy.orm import sessionmaker
 from src import oop_work_with_api
 from datetime import datetime
 from tqdm import tqdm
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 
 from src.oop_test import Base, Distributors, CityInfo, Locations, NetworksInfo, Halls, \
                          SubwayInfo, Genres, LanguageInfo, Cinemas, Images, PhoneInfo, SubwaystationsCinemas, \
                          Goodies, CinemaGoodies, SeanceInfo, Format, SeanceFormat, MovieInfo, MoviesActors, \
-                         MoviesCompanies, MoviesCountries, MoviesDirectors, MoviesGenres, MoviesImages, MoviesProducers, \
-                         MoviesTrailers, PhotosCinemas, CommonDicts, MyCompanies, MyActors,\
-                         MyProducers, MyDirectors
+                         MoviesCompanies, MoviesCountries, MoviesDirectors, MoviesProducers, \
+                         MyCompanies, MyActors, MyProducers, MyDirectors, Videos
 
 engine = create_engine('sqlite:///../data/oop_test2.db', encoding='utf-8')
 # Bind the engine to the metadata of the Base class so that the
@@ -21,33 +25,28 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-
-_dict={"companies": MyCompanies,
-        "actors": MyActors,
-        "producers": MyProducers,
-        "directors": MyDirectors}
-
-_dict_mtm={"companies": MoviesCompanies,
-           "actors": MoviesActors,
-           "producers": MoviesProducers,
-           "directors": MoviesDirectors}
-
-_dict_image = {'poster': 'poster_movie_id',
-               'posterLandscape': 'poster_land_movie_id'}
-
 def full_destibutors(df):
-    for k,v in df.iterrows():
+    new, old = 0, 0
+    for v in df:
         exists = session.query(Distributors).filter_by(distributor_id=v['id']).first()
         if not exists:
+            new += 1
             new_distr = Distributors(distributor_id=v['id'], distributor_name=v['name'])
             session.add(new_distr)
-    session.commit()
+        else:
+            old += 1
+            if old % 5 == 0:
+                logger.debug("Distributor id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} distributors, {} distributors already were been ".format(new, old))
 
 
 def full_cities(df):
-    for k,v in df.iterrows():
+    new, old = 0, 0
+    for v in df:
         exists = session.query(Locations).filter_by(city_id=v['id']).first()
         if not exists:
+            new += 1
             new_cities = CityInfo(city_id =v['id'],
                                   title=v['title'],
                                   alias=v['title'],
@@ -57,24 +56,38 @@ def full_cities(df):
                                      longitude=v['location'].get('longitude'))
             session.add(new_cities)
             session.add(new_location)
-    session.commit()
-
+        else:
+            old += 1
+            if old % 10 == 0:
+                logger.debug("City id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} cities, {} cities already were been in base".format(new, old))
 
 def full_networks(df):
-    for k,v in df.iterrows():
+    new, old = 0, 0
+    for v in df:
         exists = session.query(NetworksInfo).filter_by(network_id=v['id']).first()
         if not exists:
+            new += 1
             new_network = NetworksInfo(network_id =v['id'],
                                   title=v['title'],
                                   isSale=v['isSale'])
             session.add(new_network)
-    session.commit()
+        else:
+            old += 1
+            if old % 10 == 0:
+                logger.debug("Network id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} networks, {} networks already were been in base".format(new, old))
+
 
 
 def full_halls(df):
-    for k,v in df.iterrows():
+    old, new = 0, 0
+    for v in df:
         exists = session.query(Halls).filter_by(hall_id=v['id']).first()
         if not exists:
+            new += 1
             new_hall = Halls(hall_id=v['id'],
                              cinemaId=v['cinemaId'],
                              title=v['title'],
@@ -85,13 +98,19 @@ def full_halls(df):
                              orderScanner=v['orderScanner'],
                              ticketScanner=v['ticketScanner'])
             session.add(new_hall)
-    session.commit()
-
+        else:
+            old += 1
+            if old % 5 == 0:
+                logger.debug("Hall id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} halls, {} halls already were been in base".format(new, old))
 
 def full_subways(df):
-    for k,v in df.iterrows():
+    new, old = 0, 0
+    for v in df:
         exists = session.query(SubwayInfo).filter_by(subway_id=v['id']).first()
         if not exists:
+            new += 1
             new_subway = SubwayInfo(subway_id=v['id'],
                                     title=v['title'],
                                     line=v['line'],
@@ -102,7 +121,13 @@ def full_subways(df):
                                     longitude=v['location'].get('longitude'))
             session.add(new_subway)
             session.add(new_location)
-    session.commit()
+        else:
+            old += 1
+            if old % 5 == 0:
+                logger.debug("Subway id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} subway stations, {} subway stations already were been in base".format(new, old))
+
 
 
 
@@ -112,7 +137,7 @@ def full_genres(df):
         if not exists:
             new_genre = Genres(genre_id=v['id'], genre_name=v['name'])
             session.add(new_genre)
-    session.commit()
+        session.commit()
 
 
 def full_languages(df):
@@ -126,7 +151,7 @@ def full_languages(df):
                                     prepTitle=v['prepTitle'],
                                     shortTitle=v['shortTitle'])
             session.add(new_lang)
-    session.commit()
+        session.commit()
 
 
 def full_Goodies():
@@ -149,7 +174,7 @@ def full_Goodies():
         if not exist:
             new_good = Goodies(good_title=k, name=data.get(k))
             session.add(new_good)
-    session.commit()
+        session.commit()
 
 
 def full_formats():
@@ -168,7 +193,7 @@ def full_formats():
         if not exist:
             new_good = Format(format_name=k, description=data.get(k))
             session.add(new_good)
-    session.commit()
+        session.commit()
 
 
 def full_cinemas(df):
@@ -213,15 +238,17 @@ def full_cinemas(df):
                     new_goodies_cinema = CinemaGoodies(cinema_id=v['id'],
                                                        good_title = item)
                     session.add(new_goodies_cinema)
-            session.add(new_cinema)
-            session.add(new_location)
-    session.commit()
+                    session.add(new_cinema)
+                    session.add(new_location)
+            session.commit()
 
 
 def full_seances(df):
-    for k,v in tqdm(df.iterrows()):
+    new, old = 0, 0
+    for v in tqdm(df[55000:]):
         exists = session.query(SeanceInfo).filter_by(seance_id=v['id']).first()
         if not exists:
+            new += 1
             new_seance = SeanceInfo(seance_id=v['id'],
                                     movieId=v['movieId'],
                                     cinemaId=v['cinemaId'],
@@ -242,21 +269,19 @@ def full_seances(df):
                 new_format_seanse = SeanceFormat(seance_id=v['id'],
                                                  format_name=item)
                 session.add(new_format_seanse)
-
-    session.commit()
-
-
-def check_is_time(obj):
-    data  = '1700-01-01'
-    if obj:
-        data = obj
-    return data
-
+        else:
+            old += 1
+            if old % 10 == 0:
+                logger.debug("seance id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} seances, {} seance already were been in base".format(new, old))
 
 def full_movies(df):
-    for k,v in tqdm(df.iterrows()):
+    new, old = 0, 0
+    for v in tqdm(df):
         exists = session.query(MovieInfo).filter_by(movie_id=v['id']).first()
         if not exists:
+            new += 1
             new_movie=MovieInfo(movie_id=v['id'],
                                 title=v['title'],
                                 duration=v['duration'],
@@ -285,26 +310,78 @@ def full_movies(df):
             session.add(new_movie)
             for k in _dict.keys():
                 fill_common_dict_tables(k, v)
-            if v['poster'].get('name') and v['poster'].get('rgb'):
-                new_poster = Images(poster_movie_id=v['id'],
-                                    rgb=v['poster'].get('rgb'),
-                                    name=v['poster'].get('name'))
-                session.add(new_poster)
-            if v['posterLandscape'].get('name') and v['posterLandscape'].get('rgb'):
-                new_poster = Images(poster_land_movie_id=v['id'],
-                                    rgb=v['posterLandscape'].get('rgb'),
-                                    name=v['posterLandscape'].get('name'))
-                session.add(new_poster)
+
             if v['countries']:
                 for item in v['countries']:
                     new_country_movie = MoviesCountries(movie_id=v['id'],
                                                         country=item)
                     session.add(new_country_movie)
-    session.commit()
+
+            if v['poster'].get('name') and v['poster'].get('rgb'):
+                add_image(v, rgb=v['poster'].get('rgb'),
+                          name=v['poster'].get('name'), image_type='poster_movie_id')
+
+            if v['posterLandscape'].get('name') and v['posterLandscape'].get('rgb'):
+                add_image(v, rgb=v['posterLandscape'].get('rgb'),
+                          name=v['posterLandscape'].get('name'), image_type='poster_land_movie_id')
+
+            if v['images']:
+                for item in v['images']:
+                    if item.get('name') and item.get('rgb'):
+                        add_image(v, name=item.get('name'), rgb=item.get('rgb'),
+                                        image_type='image_movie_id')
+
+            if v['trailers']:
+                for item in v['trailers']:
+                    if item.get('preview'):
+                        add_image(df_line=v, image_type='preview_trailer_id', rgb=item.get('preview').get('rgb'),
+                                  name=item.get('preview').get('name'))
+                    if item.get('source'):
+                        new_v_source = Videos(trailer_source=v['id'],
+                                              filename=item.get('source').get('filename'),
+                                              duration=item.get('source').get('duration'),
+                                              contentType=item.get('source').get('contentType'))
+                        session.add(new_v_source)
+                    if item.get('videos'):
+                        for video in item.get('videos'):
+                            new_v = Videos(trailer_id=v['id'],
+                                           filename=video.get('filename'),
+                                           duration=video.get('duration'),
+                                           contentType=video.get('contentType'))
+                            session.add(new_v)
+        else:
+            old += 1
+            if old % 10 == 0:
+                logger.debug("movie id: {} already  exists".format(v['id']))
+        session.commit()
+    logger.debug("There were added {} movies, {} movies already were been in base".format(new, old))
 
 
 
 
+
+
+def check_is_time(obj):
+    data = '1700-01-01'
+    if obj:
+        data = obj
+    return data
+
+
+def add_image(df_line, rgb, name, image_type):
+    _dict_image = {'cinema_id': None, 'movie_id': None, 'poster_land_movie_id': None, 'image_movie_id': None,
+                   'preview_trailer_id': None, 'source_trailer_id': None, 'video_id': None, 'poster_movie_id': None,
+                   image_type: df_line['id']}
+    new_image = Images(rgb=rgb,
+                       name=name,
+                       cinema_id=_dict_image.get('cinema_id'),
+                       poster_movie_id=_dict_image.get('poster_movie_id'),
+                       poster_land_movie_id=_dict_image.get('poster_land_movie_id'),
+                       image_movie_id=_dict_image.get('image_movie_id'),
+                       preview_trailer_id=_dict_image.get('preview_trailer_id'),
+                       source_trailer_id=_dict_image.get('source_trailer_id'),
+                       video_id=_dict_image.get('video_id'))
+    session.add(new_image)
 
 
 def fill_common_dict_tables(field_name, df_string):
@@ -320,19 +397,32 @@ def fill_common_dict_tables(field_name, df_string):
             session.add(new_mtm)
 
 
+_dict = {"companies": MyCompanies,
+         "actors": MyActors,
+         "producers": MyProducers,
+         "directors": MyDirectors}
+
+_dict_mtm = {"companies": MoviesCompanies,
+             "actors": MoviesActors,
+             "producers": MoviesProducers,
+             "directors": MoviesDirectors}
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(module)s %(message)s",
+        level=10)
+
     a = oop_work_with_api.ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
     # full_cities(a.get_json(a.cities))
     # full_destibutors(a.get_json(a.distributors))
     # full_networks(a.get_json(a.networks))
     # full_halls(a.get_json(a.halls))
-    # full_subways(a.get_json(a.subways))
+    full_subways(a.get_json(a.subways))
     # full_genres(a.get_json(a.genres))
     # full_languages(a.get_json(a.languages))
     # full_cinemas(a.get_json(a.cinemas))
     # full_Goodies()
     # full_formats()
-    full_movies(a.get_json(a.movies))
-    #full_seances(a.get_json(a.seances))
+    # full_movies(a.get_json(a.movies))
+    full_seances(a.get_json(a.seances))

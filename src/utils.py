@@ -1,103 +1,52 @@
-import sqlite3
-
-#DB_ROOT = '../../kinohod.db'
-DB_ROOT = 'D:/kinohod_db/kinohod.db'
-
-
-def connection(db_root):
-    with sqlite3.connect(db_root) as con:
-        return con
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from src.oop_test import Base, Images, MyCompanies, MyActors, MyDirectors, MyProducers, \
+    MoviesProducers, MoviesDirectors, MoviesCompanies, MoviesActors
+from src import oop_add_data
 
 
-
-cinema_params = """
-                'cinema_id' INEGER,
-                'title' TEXT,
-                'shortTitle' TEXT,
-                'description' TEXT,
-                'website' TEXT,
-                'cityId' INTEGER,
-                'address' TEXT,
-                'location' TEXT,
-                'networkId' INTEGER,
-                'isSale' NUMERIC,
-                'mall' TEXT,
-                'timeToRefund' INTEGER,
-                'hallCount' INTEGER,
-                PRIMARY KEY('cinema_id')"""
+def check_is_time(obj):
+    data = '1700-01-01'
+    if obj:
+        data = obj
+    return data
 
 
-cities_params = """
-                'cityid' INTEGER,
-                'title' TEXT,
-                'location' TEXT,
-                'utcOffset' INTEGER,
-                'alias' TEXT,
-                PRIMARY KEY(`cityid`)"""
+def add_image(df_line, rgb, name, image_type, session):
+    _dict_image = {'cinema_id': None, 'movie_id': None, 'poster_land_movie_id': None, 'image_movie_id': None,
+                   'preview_trailer_id': None, 'source_trailer_id': None, 'video_id': None, 'poster_movie_id': None,
+                   image_type: df_line['id']}
+    new_image = Images(rgb=rgb,
+                       name=name,
+                       cinema_id=_dict_image.get('cinema_id'),
+                       poster_movie_id=_dict_image.get('poster_movie_id'),
+                       poster_land_movie_id=_dict_image.get('poster_land_movie_id'),
+                       image_movie_id=_dict_image.get('image_movie_id'),
+                       preview_trailer_id=_dict_image.get('preview_trailer_id'),
+                       source_trailer_id=_dict_image.get('source_trailer_id'),
+                       video_id=_dict_image.get('video_id'))
+    session.add(new_image)
 
 
-filmps_params = """
-                `movieid` INTEGER ,
-                `title` TEXT,
-                `originalTitle` TEXT,
-                `duration` INTEGER,
-                `productionYear` INTEGER,
-                `premiereDateRussia` TEXT,
-                `premiereDateWorld` TEXT,
-                `budget` NUMERIC,
-                `annotationShort` TEXT,
-                `annotationFull` TEXT,
-                `ageRestriction` TEXT,
-                `grossRevenueRus` NUMERIC,
-                `grossRevenueWorld` NUMERIC,
-                `rating` NUMERIC,
-                'imdbId' TEXT,
-                'externalTrailer' STRING,
-                'countScreens' INTEGER,
-                'countVotes' INTEGER,
-                'countComments' INTEGER,
-                'weight' INTEGER,
-                'isDolbyAtmos' NUMERIC,
-                'isImax' NUMERIC,
-                'is4dx' NUMERIC,
-                'isPresale' NUMERIC,
-                'distributorId' INTEGER,
-                PRIMARY KEY(`movieid`)"""
+def fill_common_dict_tables(field_name, df_string, session):
+    if df_string.get(field_name):
+        for item in df_string.get(field_name):
+            exists = session.query(_dict[field_name]).filter_by(field_id=item.get('id')).first()
+            if not exists:
+                new_company = _dict[field_name](field_id=item.get('id'),
+                                                name=item.get('name'))
+                session.add(new_company)
+            new_mtm = _dict_mtm[field_name](movie_id=df_string['id'],
+                                            field_id=item.get('id'))
+            session.add(new_mtm)
 
 
-halls_params = """
-                'hall_id' INTEGER,
-                'cinemaId' INTEGER,
-                'title' TEXT,
-                'description' TEXT,
-                'placeCount' INTEGER,
-                'isVIP' NUMERIC,
-                'isIMAX' NUMERIC,
-                'orderScanner' NUMERIC,
-                'ticketScanner' NUMERIC,
-                PRIMARY KEY('hall_id')"""
+_dict = {"companies": MyCompanies,
+         "actors": MyActors,
+         "producers": MyProducers,
+         "directors": MyDirectors}
 
-
-seances_params = """
-                `seanc_id` INTEGER,
-                `movieId` INTEGER,
-                `cinemaId` INTEGER,
-                `date` TEXT,
-                `time` TEXT,
-                `startTime` TEXT,
-                `hallId` INTEGER,
-                `isSaleAllowed` NUMERIC,
-                `minPrice` NUMERIC,
-                `maxPrice` NUMERIC,
-                `maxSeatsInOrder` INTEGER,
-                `subtitleId` INTEGER,
-                `languageId` INTEGER,
-                `groupName` TEXT,
-                `groupOrder` INTEGER,
-                PRIMARY KEY(`seanc_id`)"""
-
-
-
-"""
-cur.execute("drop table cities")
-con.commit()"""
+_dict_mtm = {"companies": MoviesCompanies,
+             "actors": MoviesActors,
+             "producers": MoviesProducers,
+             "directors": MoviesDirectors}

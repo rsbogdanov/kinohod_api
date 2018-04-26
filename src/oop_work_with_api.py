@@ -25,7 +25,7 @@ class ApiKinohod():
         if movies_soon.status_code == self.HTTP_OK:
             print(movies_soon.status_code)
             movies_soon_json = movies_soon.json()
-            return pd.DataFrame(movies_soon_json)
+            return movies_soon_json
         else:
             print('error')
 
@@ -33,4 +33,5 @@ class ApiKinohod():
 if __name__ == '__main__':
     a = ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
     df = a.get_json(a.movies)
-    print(df[['companies','title']].head(50))
+    for k,v in df[:1].iterrows():
+        print(v.get('trailers'))

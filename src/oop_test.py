@@ -82,8 +82,8 @@ class MovieInfo(Base):
     ageRestriction = Column(String)
     grossRevenueRus = Column(Numeric)
     grossRevenueWorld = Column(Numeric)
-    trailers = Column(String)
-    images = Column(String)
+    trailers = Column(String, ForeignKey('videos.trailer_id'))
+    images_1 = Column(String, ForeignKey('images.image_movie_id'))
     rating = Column(Numeric)
     imdbId = Column(String)
     externalTrailer = Column(String)
@@ -98,6 +98,11 @@ class MovieInfo(Base):
     is4dx = Column(Boolean)
     isPresale = Column(Boolean)
     distributorId = Column(Integer, ForeignKey('distributors.distributor_id'))
+
+    images_ids = relationship("Images", foreign_keys=[images_1])
+    poster_id = relationship("Images", foreign_keys=[poster])
+    poster_land_id = relationship("Images", foreign_keys=[posterLandscape])
+
 
 
 class SeanceInfo(Base):
@@ -272,11 +277,6 @@ class Images(Base):
     video_id = Column(Integer)
 
     cinemas = relationship("Cinemas", backref="images")
-    movies = relationship("MovieInfo",
-                          secondary="movies_images",
-                          backref="images_movies")
-    preview_trailer = relationship("TrailersInfo",
-                          backref="images_prtrailers")
     videos = relationship("Videos",
                           backref="images_videos")
 
@@ -290,37 +290,7 @@ class Videos(Base):
     duration = Column(Numeric)
     contentType = Column(String)
     trailer_source = Column(Integer)
-    sourse_trailer_id = relationship("TrailersInfo",
-                                     secondary="trailers_videos",
-                                     backref="video_trailer")
-
-
-
-
-class TrailersInfo(Base):
-    __tablename__ = "trailers"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    preview_image = Column(Integer, ForeignKey('images.preview_trailer_id'), nullable=False)
-    videos = Column(Integer, nullable=False)
-    source = Column(Integer, ForeignKey('videos.trailer_source'))
-    movie = relationship("MovieInfo",
-                         secondary="movies_trailers",
-                         backref="trailer_video")
-
-
-class MoviesTrailers(Base):
-    __tablename__ = 'movies_trailers'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    movie_id = Column(Integer, ForeignKey("movies.movie_id"))
-    trailer_id = Column(Integer, ForeignKey("trailers.id"))
-
-
-class TrailersVideos(Base):
-    __tablename__ = 'trailers_videos'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    trailer_id = Column(Integer, ForeignKey('trailers.id'))
-    video_id = Column(Integer, ForeignKey('videos.id'))
-
+    trailer_id = Column(Integer)
 
 
 ##перенести##
@@ -403,15 +373,6 @@ class PhotosCinemas(Base):
     cinema_id = Column(Integer, ForeignKey('cinemas.id'))
     rgb = Column(String)
     name = Column(String)
-
-
-
-
-class MoviesImages(Base):
-    __tablename__ = 'movies_images'
-    id = Column(Integer, primary_key=True)
-    movie_id = Column(Integer, ForeignKey('movies.movie_id'))
-    image_id = Column(Integer, ForeignKey('images.id'))
 
 
 class Format(Base):
