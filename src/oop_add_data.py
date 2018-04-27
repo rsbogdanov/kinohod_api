@@ -132,18 +132,29 @@ def full_subways(df):
 
 
 def full_genres(df):
-    for k,v in df.iterrows():
+    old, new = 0, 0
+    for v in df:
         exists = session.query(Genres).filter_by(genre_id=v['id']).first()
         if not exists:
+            new += 1
             new_genre = Genres(genre_id=v['id'], genre_name=v['name'])
             session.add(new_genre)
+        else:
+            old += 1
+            if old % 5 == 0:
+                logger.debug("Genre id: {} already  exists".format(v['id']))
         session.commit()
+    logger.debug(
+            "There were added {} genres, {} genres already were been in base".format(new, old))
+
 
 
 def full_languages(df):
-    for k,v in df.iterrows():
+    old, new = 0, 0
+    for v in df:
         exists = session.query(LanguageInfo).filter_by(language_id=v['id']).first()
         if not exists:
+            new += 1
             new_lang = LanguageInfo(language_id=v['id'],
                                     greeting=v['greeting'],
                                     origTitle=v['origTitle'],
@@ -151,7 +162,13 @@ def full_languages(df):
                                     prepTitle=v['prepTitle'],
                                     shortTitle=v['shortTitle'])
             session.add(new_lang)
+        else:
+            old += 1
+            if old % 5 == 0:
+                logger.debug("Language id: {} already  exists".format(v['id']))
         session.commit()
+    logger.debug(
+        "There were added {} languages, {} languages already were been in base".format(new, old))
 
 
 def full_Goodies():
@@ -197,9 +214,11 @@ def full_formats():
 
 
 def full_cinemas(df):
-    for k,v in tqdm(df.iterrows()):
+    old, new = 0, 0
+    for v in tqdm(df):
         exists = session.query(Cinemas).filter_by(cinema_id=v['id']).first()
         if not exists:
+            new += 1
             new_cinema = Cinemas(cinema_id=v['id'],
                                  title=v['title'],
                                  shortTitle=v['shortTitle'],
@@ -240,12 +259,19 @@ def full_cinemas(df):
                     session.add(new_goodies_cinema)
                     session.add(new_cinema)
                     session.add(new_location)
+        else:
+            old += 1
+            if old % 5 == 0:
+                logger.debug("Cinema id: {} already  exists".format(v['id']))
             session.commit()
+    logger.debug(
+            "There were added {} cinemas, {} cinemas already were been in base".format(new, old))
+
 
 
 def full_seances(df):
     new, old = 0, 0
-    for v in tqdm(df[55000:]):
+    for v in tqdm(df):
         exists = session.query(SeanceInfo).filter_by(seance_id=v['id']).first()
         if not exists:
             new += 1
@@ -271,7 +297,7 @@ def full_seances(df):
                 session.add(new_format_seanse)
         else:
             old += 1
-            if old % 10 == 0:
+            if old % 100 == 0:
                 logger.debug("seance id: {} already  exists".format(v['id']))
         session.commit()
     logger.debug("There were added {} seances, {} seance already were been in base".format(new, old))
@@ -330,7 +356,6 @@ def full_movies(df):
                     if item.get('name') and item.get('rgb'):
                         add_image(v, name=item.get('name'), rgb=item.get('rgb'),
                                         image_type='image_movie_id')
-
             if v['trailers']:
                 for item in v['trailers']:
                     if item.get('preview'):
@@ -351,14 +376,10 @@ def full_movies(df):
                             session.add(new_v)
         else:
             old += 1
-            if old % 10 == 0:
+            if old % 100 == 0:
                 logger.debug("movie id: {} already  exists".format(v['id']))
         session.commit()
     logger.debug("There were added {} movies, {} movies already were been in base".format(new, old))
-
-
-
-
 
 
 def check_is_time(obj):
@@ -414,15 +435,15 @@ if __name__ == '__main__':
         level=10)
 
     a = oop_work_with_api.ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
-    # full_cities(a.get_json(a.cities))
-    # full_destibutors(a.get_json(a.distributors))
-    # full_networks(a.get_json(a.networks))
-    # full_halls(a.get_json(a.halls))
+    full_cities(a.get_json(a.cities))
+    full_destibutors(a.get_json(a.distributors))
+    full_networks(a.get_json(a.networks))
+    full_halls(a.get_json(a.halls))
     full_subways(a.get_json(a.subways))
-    # full_genres(a.get_json(a.genres))
-    # full_languages(a.get_json(a.languages))
-    # full_cinemas(a.get_json(a.cinemas))
-    # full_Goodies()
-    # full_formats()
-    # full_movies(a.get_json(a.movies))
+    full_genres(a.get_json(a.genres))
+    full_languages(a.get_json(a.languages))
+    full_cinemas(a.get_json(a.cinemas))
+    full_Goodies()
+    full_formats()
+    full_movies(a.get_json(a.movies))
     full_seances(a.get_json(a.seances))
