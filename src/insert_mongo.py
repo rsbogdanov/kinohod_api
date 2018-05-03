@@ -84,7 +84,7 @@ if __name__ == '__main__':
     a = oop_work_with_api.ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
     #fill_halls(a.get_json(a.halls))
     #fill_cinemas(a.get_json(a.cinemas))
-    #fill_movies(a.get_json(a.movies))
+    fill_movies(a.get_json(a.movies))
     fill_ceanses(a.get_json(a.seances))
     #fill_networks(a.get_json(a.networks))
     #fill_networks(a.get_json(a.networks))
