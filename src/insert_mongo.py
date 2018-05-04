@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from tqdm import tqdm
-from src import oop_work_with_api
+import oop_work_with_api
 from datetime import datetime
 import logging
 
