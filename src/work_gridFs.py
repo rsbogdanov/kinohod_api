@@ -81,7 +81,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(module)s %(message)s",
         level=1)
-    #find_all_images_in_cinemas()
-    #find_all_images_in_movies()
+    find_all_images_in_cinemas()
+    find_all_images_in_movies()
     find_all_posters_in_movies()
     find_all_postersLand_in_movies()
