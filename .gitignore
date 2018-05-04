@@ -4,3 +4,4 @@ src/__pycache__/
 *.db
 .DS_Store
 data/.DS_Store
+kinohod_api/
