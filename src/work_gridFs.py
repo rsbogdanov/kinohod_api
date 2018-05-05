@@ -46,6 +46,7 @@ def get_image_url(ddict):
 
 def find_all_images_in_cinemas():
     res_f = dbb.cinemas.find({'photo': {'$ne': {'name': None, 'rgb': None}}})
+    print(len(list(res_f)))
     for i in tqdm(list(res_f)[:50]):
         if i.get('photo') != {'name': None, 'rgb': None}:
             for photo in i.get('photo'):
