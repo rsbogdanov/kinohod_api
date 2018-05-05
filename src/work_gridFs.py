@@ -47,7 +47,7 @@ def get_image_url(ddict):
 def find_all_images_in_cinemas():
     res_f = dbb.cinemas.find({'photo': {'$ne': {'name': None, 'rgb': None}}})
     print(len(list(res_f)))
-    for i in tqdm(list(res_f)[:50]):
+    for i in tqdm(list(res_f)):
         if i.get('photo') != {'name': None, 'rgb': None}:
             for photo in i.get('photo'):
                 image_url = get_image_url(photo)
@@ -59,7 +59,7 @@ def find_all_images_in_movies():
     for i in tqdm(list(dbb.movies.find({'images': {'$ne': {'name': None, 'rgb': None}}}))[:500]):
         for image in i.get('images'):
             res.append(image)
-    for i in tqdm(res[:50]):
+    for i in tqdm(res[:5000]):
         image_url = get_image_url(i)
         add_image(image_url, i.get('name'))
 
