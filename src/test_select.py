@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 # premiereDateRussia=datetime.strptime(check_is_time(v['premiereDateRussia']),'%Y-%m-%d'),
 # premiereDateWorld=datetime.strptime(check_is_time(v['premiereDateWorld']),'%Y-%m-%d'),
 
-client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/')
+client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
 db = client['Kinohod']
 
 day_x = datetime.today() - timedelta(1)

@@ -18,7 +18,7 @@ import requests
 
 
 
-client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/')
+client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
 dbb = client['Kinohod']
 db = client['Kinohod_files']
 fs = gridfs.GridFS(db)
