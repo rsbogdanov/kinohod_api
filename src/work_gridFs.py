@@ -56,23 +56,23 @@ def find_all_images_in_cinemas():
 
 def find_all_images_in_movies():
     res = []
-    for i in tqdm(list(dbb.movies.find({'images': {'$ne': {'name': None, 'rgb': None}}}))[:500]):
+    for i in tqdm(list(dbb.movies.find({'images': {'$ne': {'name': None, 'rgb': None}}}))):
         for image in i.get('images'):
             res.append(image)
-    for i in tqdm(res[:5000]):
+    for i in tqdm(res):
         image_url = get_image_url(i)
         add_image(image_url, i.get('name'))
 
 
 def find_all_posters_in_movies():
-    for i in tqdm(list(dbb.movies.find({'poster': {'$ne': {'name': None, 'rgb': None}}}))[:50]):
+    for i in tqdm(list(dbb.movies.find({'poster': {'$ne': {'name': None, 'rgb': None}}}))):
         if i.get('poster'):
             image_url=get_image_url(i.get('poster'))
             add_image(image_url, i.get('name'))
 
 
 def find_all_postersLand_in_movies():
-    for i in tqdm(list(dbb.movies.find({'posterLandscape': {'$ne': {'name': None, 'rgb': None}}}))[:50]):
+    for i in tqdm(list(dbb.movies.find({'posterLandscape': {'$ne': {'name': None, 'rgb': None}}}))):
         if i.get('posterLandscape'):
             image_url = get_image_url(i.get('posterLandscape'))
             add_image(image_url, i.get('name'))
