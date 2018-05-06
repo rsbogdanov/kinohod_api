@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-client = MongoClient('mongodb://myUserAdmin:RomA48917050@localhost:27017/')
+client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/')
 db = client['Kinohod']
 
 
