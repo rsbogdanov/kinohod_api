@@ -18,10 +18,11 @@ import requests
 
 
 
-client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
-dbb = client['Kinohod']
+client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/')
+client2 = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
+dbb = client2['Kinohod']
 db = client['Kinohod_files']
-fs = gridfs.GridFS(db)
+fs = gridfs.GridFS(MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/').Kinohod_files)
 
 
 
@@ -45,18 +46,17 @@ def get_image_url(ddict):
     return image_url
 
 def find_all_images_in_cinemas():
-    res_f = dbb.cinemas.find({'photo': {'$ne': {'name': None, 'rgb': None}}})
-    print(len(list(res_f)))
+    res_f = dbb.cinemas.find({'photo.name': {"$ne": None}})
     for i in tqdm(list(res_f)):
-        if i.get('photo') != {'name': None, 'rgb': None}:
-            for photo in i.get('photo'):
-                image_url = get_image_url(photo)
-                add_image(image_url, photo.get('name'))
+        for photo in i.get('photo'):
+            image_url = get_image_url(photo)
+            add_image(image_url, photo.get('name'))
 
 
 def find_all_images_in_movies():
     res = []
-    for i in tqdm(list(dbb.movies.find({'images': {'$ne': {'name': None, 'rgb': None}}}))):
+    res_f = dbb.movies.find({'images.name': {"$ne": None}})
+    for i in tqdm(list(res_f)):
         for image in i.get('images'):
             res.append(image)
     for i in tqdm(res):
@@ -65,14 +65,16 @@ def find_all_images_in_movies():
 
 
 def find_all_posters_in_movies():
-    for i in tqdm(list(dbb.movies.find({'poster': {'$ne': {'name': None, 'rgb': None}}}))):
+    res_f = dbb.movies.find({'poster.name': {"$ne": None}})
+    for i in tqdm(list(res_f)):
         if i.get('poster'):
             image_url=get_image_url(i.get('poster'))
             add_image(image_url, i.get('name'))
 
 
 def find_all_postersLand_in_movies():
-    for i in tqdm(list(dbb.movies.find({'posterLandscape': {'$ne': {'name': None, 'rgb': None}}}))):
+    res_f = dbb.movies.find({'posterLandscape.name': {"$ne": None}})
+    for i in tqdm(list(res_f)):
         if i.get('posterLandscape'):
             image_url = get_image_url(i.get('posterLandscape'))
             add_image(image_url, i.get('name'))
