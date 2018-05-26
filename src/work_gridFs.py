@@ -22,7 +22,12 @@ client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/')
 client2 = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
 dbb = client2['Kinohod']
 db = client['Kinohod_files']
-fs = gridfs.GridFS(MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/').Kinohod_files)
+client_f = MongoClient('localhost:27017',
+                     username='rbogdanov',
+                     password='RomA48917050',
+                     authSource='Kinohod_files',
+                     authMechanism='SCRAM-SHA-1')
+fs = gridfs.GridFS(client_f['Kinohod_files'])
 
 
 
