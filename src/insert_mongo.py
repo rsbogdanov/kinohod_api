@@ -23,23 +23,32 @@ fs = gridfs.GridFS(client_f['Kinohod_files'])
 
 def fill_halls(j_file):
     for hall in tqdm(j_file):
-        dbb.halls.update({
-            '_id': hall.get('id')
-        }, hall, upsert=True)
+        cursor = dbb.halls.find({'_id': hall.get('id')})
+        if cursor.count() == 0:
+            dbb.halls.update({
+                '_id': hall.get('id')
+            }, hall, upsert=True)
+            logger.debug('Hall with id - {}, was added to db'.format(hall.get('id')))
 
 
 def fill_cinemas(j_file):
     for cinema in tqdm(j_file):
-        dbb.cinemas.update({
-            '_id': cinema.get('id')
-        }, cinema, upsert=True)
+        cursor = dbb.cinemas.find({'_id': cinema.get('id')})
+        if cursor.count() == 0:
+            dbb.cinemas.update({
+                '_id': cinema.get('id')
+            }, cinema, upsert=True)
+            logger.debug('Cinema with id - {}, was added to db'.format(cinema.get('id')))
 
 
 def fill_networks(j_file):
     for network in tqdm(j_file):
-        dbb.networks.update({
-            '_id': network.get('id')
-        }, network, upsert=True)
+        cursor = dbb.networks.find({'_id': network.get('id')})
+        if cursor.count() == 0:
+            dbb.networks.update({
+                '_id': network.get('id')
+            }, network, upsert=True)
+            logger.debug('Network with id - {}, was added to db'.format(network.get('id')))
 
 
 def fill_movies(j_file):
@@ -143,44 +152,60 @@ def get_image_url(ddict, field='name'):
 def fill_ceanses(j_file):
     i = 0
     for seance in tqdm(j_file):
-        if isinstance(seance['id'], str):
-            seance['id'] = int(seance.get('id'))
-        seance['date'] = datetime.strptime(seance['date'], '%Y-%m-%d'),
-        seance['time'] = datetime.strptime(seance['time'], '%H:%M'),
-        seance['startTime'] = datetime.strptime(seance['startTime'] + '00', '%Y-%m-%d %H:%M:%S%z')
-        dbb.seanses.update({
-            '_id': seance.get('id')
-        }, seance, upsert=True)
-        i += 1
-    logger.info("{} new ceanses was added to db".format(i))
+        cursor = dbb.seanses.find({'_id': seance.get('id')})
+        if cursor.count() == 0:
+            if isinstance(seance['id'], str):
+                seance['id'] = int(seance.get('id'))
+            seance['date'] = datetime.strptime(seance['date'], '%Y-%m-%d'),
+            seance['time'] = datetime.strptime(seance['time'], '%H:%M'),
+            seance['startTime'] = datetime.strptime(seance['startTime'] + '00', '%Y-%m-%d %H:%M:%S%z')
+            dbb.seanses.update({
+                '_id': seance.get('id')
+            }, seance, upsert=True)
+            i += 1
+    logger.debug("{} new ceanses was added to db".format(i))
 
 
 def fill_distributors(j_file):
     for distributor in tqdm(j_file):
-        dbb.distributors.update({
-            '_id': distributor.get('id')
-        }, distributor, upsert=True)
+        cursor = dbb.distributors.find({'_id': distributor.get('id')})
+        if cursor.count() == 0:
+            dbb.distributors.update({
+                '_id': distributor.get('id')
+            }, distributor, upsert=True)
+            logger.debug("Distributor with id - {} was added to db".format(distributor.get('id')))
 
 
 def fill_cities(j_file):
     for city in tqdm(j_file):
-        dbb.cities.update({
-            '_id': city.get('id')
-        }, city, upsert=True)
+        cursor = dbb.cities.find({'_id': city.get('id')})
+        if cursor.count() == 0:
+            dbb.cities.update({
+                '_id': city.get('id')
+            }, city, upsert=True)
+            logger.debug("City with id - {} was added to db".format(city.get('id')))
 
 
 def fill_subways(j_file):
     for subway_station in tqdm(j_file):
-        dbb.subways.update({
-            '_id': subway_station.get('id')
-        }, subway_station, upsert=True)
+        cursor = dbb.subways.find({'_id': subway_station.get('id')})
+        if cursor.count() == 0:
+            dbb.subways.update({
+                '_id': subway_station.get('id')
+            }, subway_station, upsert=True)
+            logger.debug("Subway with id - {} was added to db".format(subway_station.get('id')))
+
 
 
 def fill_genres(j_file):
     for genre in j_file:
-        dbb.genres.update({
-            '_id': genre.get('id')
-        }, genre, upsert=True)
+        cursor = dbb.genres.find({'_id': genre.get('id')})
+        if cursor.count() == 0:
+            dbb.genres.update({
+                '_id': genre.get('id')
+            }, genre, upsert=True)
+            logger.debug("Genre with id - {} was added to db".format(genre.get('id')))
+
 
 
 if __name__ == '__main__':
