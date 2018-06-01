@@ -71,7 +71,7 @@ def fill_movies(j_file):
                         filename = image.get('name')
                         image_url = get_image_url(image)
                         im_id = add_image(image_url, filename)
-                        db.movies.update({'_id': movie.get('id')},
+                        dbb.movies.update({'_id': movie.get('id')},
                                          {'$set':
                                               {"images.{0}.file_id".format(str(i)): im_id
                                                }
@@ -84,7 +84,7 @@ def fill_movies(j_file):
                         filename = element.get('preview').get('name')
                         image_url = get_image_url(element.get('preview'))
                         im_id = add_image(image_url, filename)
-                        db.movies.update({"_id": movie.get('id')},
+                        dbb.movies.update({"_id": movie.get('id')},
                                          {"$set":
                                               {'trailers.{0}.preview.file_id'.format(str(i)): im_id
                                                }
@@ -93,7 +93,7 @@ def fill_movies(j_file):
                         filename = element.get('source').get('filename')
                         image_url = get_image_url(element.get('source'), 'filename')
                         im_id = add_image(image_url, filename)
-                        db.movies.update({"_id": movie.get('id')},
+                        dbb.movies.update({"_id": movie.get('id')},
                                          {"$set":
                                               {"trailers.{0}.source.file_id".format(str(i)): im_id
                                                }
@@ -106,7 +106,7 @@ def fill_movies(j_file):
                                 filename = video.get('filename')
                                 image_url = get_image_url(video, 'filename')
                                 im_id = add_image(image_url, filename)
-                                db.movies.update({"_id": movie.get('id')},
+                                dbb.movies.update({"_id": movie.get('id')},
                                                  {"$set":
                                                       {"trailers.{0}.videos.{1}.file_id".format(str(i), str(j)): im_id
                                                        }
@@ -117,7 +117,7 @@ def insert_poster(movie, key_word):
     filename = movie.get(key_word)
     image_url = get_image_url(movie.get(key_word))
     f_id = add_image(image_url, filename)
-    db.movies.update({"_id": movie.get('id')},
+    dbb.movies.update({"_id": movie.get('id')},
                      {"$set":
                           {key_word + ".file_id": f_id}
                       })
