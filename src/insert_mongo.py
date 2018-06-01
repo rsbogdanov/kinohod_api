@@ -2,13 +2,23 @@ from pymongo import MongoClient
 from tqdm import tqdm
 import oop_work_with_api
 from datetime import datetime
+import requests
+import mimetypes
 import logging
+import gridfs
 
 logger = logging.getLogger(__name__)
 
-
-client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
-db = client['Kinohod']
+client = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/')
+client2 = MongoClient('mongodb://rbogdanov:RomA48917050@localhost:27017/Kinohod')
+dbb = client2['Kinohod']
+db = client['Kinohod_files']
+client_f = MongoClient('localhost:27017',
+                       username='rbogdanov',
+                       password='RomA48917050',
+                       authSource='Kinohod_files',
+                       authMechanism='SCRAM-SHA-1')
+fs = gridfs.GridFS(client_f['Kinohod_files'])
 
 
 def fill_halls(j_file):
@@ -17,11 +27,13 @@ def fill_halls(j_file):
             '_id': hall.get('id')
         }, hall, upsert=True)
 
+
 def fill_cinemas(j_file):
-    for cinema in tqdm(j_file[:1000]):
+    for cinema in tqdm(j_file):
         db.cinemas.update({
             '_id': cinema.get('id')
         }, cinema, upsert=True)
+
 
 def fill_networks(j_file):
     for network in tqdm(j_file):
@@ -29,19 +41,104 @@ def fill_networks(j_file):
             '_id': network.get('id')
         }, network, upsert=True)
 
-def fill_movies(j_file):
+
+def fill_movie(j_file):
     for movie in tqdm(j_file):
         if isinstance(movie['id'], str):
             movie['id'] = int(movie.get('id'))
-        if movie.get('premiereDateWorld'):
-            movie['premiereDateWorld'] = datetime.strptime(movie.get('premiereDateWorld'), '%Y-%m-%d')
-        if movie.get('premiereDateRussia'):
-            movie['premiereDateRussia'] = datetime.strptime(movie.get('premiereDateRussia'), '%Y-%m-%d')
-        db.movies.update({
-            '_id': movie.get('id')
-        }, movie, upsert=True)
+        print(movie['id'])
+        cursor = db.movies.find({'_id': movie.get('id')})
+        if cursor.count() == 0:
+            if movie.get('premiereDateWorld'):
+                if isinstance(movie.get('premiereDateWorld'), str):
+                    movie['premiereDateWorld'] = datetime.strptime(movie.get('premiereDateWorld'), '%Y-%m-%d')
+            if movie.get('premiereDateRussia'):
+                if isinstance(movie.get('premiereDateRussia'), str):
+                    movie['premiereDateRussia'] = datetime.strptime(movie.get('premiereDateRussia'), '%Y-%m-%d')
+            db.movies.update({'_id': movie.get('id')}, movie, upsert=True)
+            if movie.get('posterLandscape').get('name'):
+                insert_poster(movie, 'posterLandscape')
+            if movie.get('poster').get('name'):
+                insert_poster(movie, 'poster')
+            if movie.get('images'):
+                i = -1
+                for image in movie.get('images'):
+                    i += 1
+                    if image.get('name'):
+                        filename = image.get('name')
+                        image_url = get_image_url(image)
+                        im_id = add_image(image_url, filename)
+                        db.movies.update({'_id': movie.get('id')},
+                                         {'$set':
+                                              {"images.{0}.file_id".format(str(i)): im_id
+                                               }
+                                          })
+            if movie.get('trailers'):
+                i = -1
+                for element in movie.get('trailers'):
+                    i += 1
+                    if element.get('preview').get('name'):
+                        filename = element.get('preview').get('name')
+                        image_url = get_image_url(element.get('preview'))
+                        im_id = add_image(image_url, filename)
+                        db.movies.update({"_id": movie.get('id')},
+                                         {"$set":
+                                              {'trailers.{0}.preview.file_id'.format(str(i)): im_id
+                                               }
+                                          })
+                    if element.get('source').get('filename'):
+                        filename = element.get('source').get('filename')
+                        image_url = get_image_url(element.get('source'), 'filename')
+                        im_id = add_image(image_url, filename)
+                        db.movies.update({"_id": movie.get('id')},
+                                         {"$set":
+                                              {"trailers.{0}.source.file_id".format(str(i)): im_id
+                                               }
+                                          })
+                    if element.get('videos'):
+                        j = -1
+                        for video in element.get('videos'):
+                            j += 1
+                            if video.get('filename'):
+                                filename = video.get('filename')
+                                image_url = get_image_url(video, 'filename')
+                                im_id = add_image(image_url, filename)
+                                db.movies.update({"_id": movie.get('id')},
+                                                 {"$set":
+                                                      {"trailers.{0}.videos.{1}.file_id".format(str(i), str(j)): im_id
+                                                       }
+                                                  })
+
+
+def insert_poster(movie, key_word):
+    filename = movie.get(key_word)
+    image_url = get_image_url(movie.get(key_word))
+    f_id = add_image(image_url, filename)
+    db.movies.update({"_id": movie.get('id')},
+                     {"$set":
+                          {key_word + ".file_id": f_id}
+                      })
+
+
+def add_image(image_url, filename):
+    gridfs_filename = filename
+    mime_type = mimetypes.guess_type(image_url)[0]
+    r = requests.get(image_url, stream=True)
+    kd = fs.put(r.raw, contentType=mime_type, filename=gridfs_filename)
+    return kd
+
+
+def get_image_url(ddict, field='name'):
+    image_url = 'http://{HOST}/p/1000x300/{ab}/{cd}/{uuid}.{ext}'.format(HOST='www.kinohod.ru',
+                                                                         ab=ddict.get(field)[:2],
+                                                                         cd=ddict.get(field)[2:4],
+                                                                         uuid=ddict.get(field).split('.')[0],
+                                                                         ext=ddict.get(field).split('.')[1])
+    return image_url
+
 
 def fill_ceanses(j_file):
+    i = 0
     for seance in tqdm(j_file):
         if isinstance(seance['id'], str):
             seance['id'] = int(seance.get('id'))
@@ -51,6 +148,9 @@ def fill_ceanses(j_file):
         db.seanses.update({
             '_id': seance.get('id')
         }, seance, upsert=True)
+        i += 1
+    logger.info("{} new ceanses was added to db".format(i))
+
 
 def fill_distributors(j_file):
     for distributor in tqdm(j_file):
@@ -58,11 +158,13 @@ def fill_distributors(j_file):
             '_id': distributor.get('id')
         }, distributor, upsert=True)
 
+
 def fill_cities(j_file):
     for city in tqdm(j_file):
         db.cities.update({
             '_id': city.get('id')
         }, city, upsert=True)
+
 
 def fill_subways(j_file):
     for subway_station in tqdm(j_file):
@@ -70,11 +172,13 @@ def fill_subways(j_file):
             '_id': subway_station.get('id')
         }, subway_station, upsert=True)
 
+
 def fill_genres(j_file):
     for genre in j_file:
         db.genres.update({
             '_id': genre.get('id')
         }, genre, upsert=True)
+
 
 if __name__ == '__main__':
     logging.basicConfig(
