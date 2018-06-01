@@ -47,7 +47,7 @@ def fill_movies(j_file):
         if isinstance(movie['id'], str):
             movie['id'] = int(movie.get('id'))
         print(movie['id'])
-        cursor = db.movies.find({'_id': movie.get('id')})
+        cursor = dbb.movies.find({'_id': movie.get('id')})
         if cursor.count() == 0:
             if movie.get('premiereDateWorld'):
                 if isinstance(movie.get('premiereDateWorld'), str):
