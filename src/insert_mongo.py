@@ -43,10 +43,11 @@ def fill_networks(j_file):
 
 
 def fill_movies(j_file):
+    k = 0
     for movie in tqdm(j_file):
+        k += 1
         if isinstance(movie['id'], str):
             movie['id'] = int(movie.get('id'))
-        print(movie['id'])
         cursor = dbb.movies.find({'_id': movie.get('id')})
         if cursor.count() == 0:
             if movie.get('premiereDateWorld'):
@@ -56,6 +57,8 @@ def fill_movies(j_file):
                 if isinstance(movie.get('premiereDateRussia'), str):
                     movie['premiereDateRussia'] = datetime.strptime(movie.get('premiereDateRussia'), '%Y-%m-%d')
             dbb.movies.update({'_id': movie.get('id')}, movie, upsert=True)
+            if k % 50 == 0:
+                logger.debug("Movie {} was added to db".format(movie.get('title')))
             if movie.get('posterLandscape').get('name'):
                 insert_poster(movie, 'posterLandscape')
             if movie.get('poster').get('name'):
