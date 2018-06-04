@@ -18,12 +18,12 @@ class ApiKinohod():
         self.cinemas = 'cinemas.json'
         self.movies = 'movies.json'
         self.seances = 'seances.json'
+        self.running = 'running.json'
 
     def get_json(self, method):
         link = self.api_key + method
         movies_soon = requests.get(link, headers=self.accept)
         if movies_soon.status_code == self.HTTP_OK:
-            print(movies_soon.status_code)
             movies_soon_json = movies_soon.json()
             return movies_soon_json
         else:
@@ -32,6 +32,5 @@ class ApiKinohod():
 
 if __name__ == '__main__':
     a = ApiKinohod('https://api.kinohod.ru/api/data/2/5982bb5a-1d76-31f8-abd5-c4253474ecf3/')
-    df = a.get_json(a.movies)
-    for v in df[:1]:
-        print(v)
+    df = a.get_json(a.running)
+    print(len(df))

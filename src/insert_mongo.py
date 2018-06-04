@@ -207,6 +207,23 @@ def fill_genres(j_file):
             logger.debug("Genre with id - {} was added to db".format(genre.get('id')))
 
 
+def fill_running_movies(j_file):
+    k = 0
+    for movie in tqdm(j_file):
+        k += 1
+        if isinstance(movie['id'], str):
+            movie['id'] = int(movie.get('id'))
+        cursor = dbb.movies.find({'_id': movie.get('id')})
+        if cursor.count() == 0:
+            if movie.get('premiereDateWorld'):
+                if isinstance(movie.get('premiereDateWorld'), str):
+                    movie['premiereDateWorld'] = datetime.strptime(movie.get('premiereDateWorld'), '%Y-%m-%d')
+            if movie.get('premiereDateRussia'):
+                if isinstance(movie.get('premiereDateRussia'), str):
+                    movie['premiereDateRussia'] = datetime.strptime(movie.get('premiereDateRussia'), '%Y-%m-%d')
+            dbb.running.update({'_id': movie.get('id')}, movie, upsert=True)
+            if k % 50 == 0:
+                logger.debug("Movie {} was added to db".format(movie.get('title')))
 
 if __name__ == '__main__':
     logging.basicConfig(
@@ -223,3 +240,4 @@ if __name__ == '__main__':
     fill_cities(a.get_json(a.cities))
     fill_genres(a.get_json(a.genres))
     fill_subways(a.get_json(a.genres))
+    fill_running_movies(a.get_json(a.running))
